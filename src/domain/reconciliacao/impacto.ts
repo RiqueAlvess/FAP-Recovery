@@ -1,7 +1,7 @@
 import { FAP_MAXIMO, FAP_MINIMO, PESOS_PADRAO } from '@/domain/fap';
 import { PESOS_GRAVIDADE } from '@/domain/fap/gravity';
 import type { EspecieBeneficio } from '@/domain/divergences/types';
-import type { ContextoCicloFap, Divergencia, RegistroExtratoPlano } from './types.js';
+import type { ContextoCicloFap, Divergencia, RegistroExtratoPlano, TotaisIndiceAtual } from './types';
 
 /**
  * === Aproximação linear documentada ===
@@ -90,4 +90,22 @@ export function calcularImpacto(divergencia: Divergencia, contexto: ContextoCicl
   const deltaFap = calcularDeltaFapAproximado(divergencia, contexto);
   const economia = contexto.folhaAnualCentavos * (contexto.aliquotaRat / 100) * deltaFap;
   return Math.round(Math.max(economia, 0));
+}
+
+/**
+ * Soma bruta atual dos três índices a partir dos registros do extrato —
+ * mesma classificação (deltaFrequencia/Gravidade/Custo) usada internamente
+ * por `calcularDeltaFapAproximado`, exportada para que quem monta o
+ * `ContextoCicloFap`/`CicloParaSimulacao` (a camada de persistência) não
+ * duplique essa lógica.
+ */
+export function calcularTotaisIndiceAtual(registrosExtrato: RegistroExtratoPlano[]): TotaisIndiceAtual {
+  return registrosExtrato.reduce(
+    (totais, registro) => ({
+      frequencia: totais.frequencia + deltaFrequencia(registro),
+      gravidade: totais.gravidade + deltaGravidade(registro),
+      custo: totais.custo + deltaCusto(registro),
+    }),
+    { frequencia: 0, gravidade: 0, custo: 0 }
+  );
 }

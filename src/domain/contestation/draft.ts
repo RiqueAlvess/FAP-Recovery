@@ -1,5 +1,5 @@
-import { buscarDivergenciaPorCodigo } from '../divergences/catalog.js';
-import { LIMITE_CARACTERES_CONTESTACAO } from './rules.js';
+import { buscarDivergenciaPorCodigo } from '../divergences/catalog';
+import { LIMITE_CARACTERES_CONTESTACAO } from './rules';
 
 export interface ItemMinuta {
   codigo: string;

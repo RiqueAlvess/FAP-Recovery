@@ -1,6 +1,6 @@
-import { dentroDoPrazoPrescricional } from '../contestation/rules.js';
-import type { PagamentoBeneficio } from './types.js';
-import { corrigirValorPelaSelic, type ProvedorTaxaSelic } from './selic.js';
+import { dentroDoPrazoPrescricional } from '../contestation/rules';
+import type { PagamentoBeneficio } from './types';
+import { corrigirValorPelaSelic, type ProvedorTaxaSelic } from './selic';
 
 export interface ResultadoDiagnostico {
   economiaAnualProspectiva: number;

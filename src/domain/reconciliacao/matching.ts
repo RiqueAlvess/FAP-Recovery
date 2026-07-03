@@ -1,4 +1,4 @@
-import type { RegistroExtratoPlano, RegistroInternoPlano } from './types.js';
+import type { RegistroExtratoPlano, RegistroInternoPlano } from './types';
 
 const MARCAS_DIACRITICAS = new RegExp('[\\u0300-\\u036f]', 'g');
 

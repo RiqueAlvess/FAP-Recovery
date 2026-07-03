@@ -1,4 +1,4 @@
-import type { DivergenciaCatalogo } from './types.js';
+import type { DivergenciaCatalogo } from './types';
 
 export const CATALOGO_DIVERGENCIAS: DivergenciaCatalogo[] = [
   {

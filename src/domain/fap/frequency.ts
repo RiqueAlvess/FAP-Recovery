@@ -1,4 +1,4 @@
-import type { Ocorrencia } from './types.js';
+import type { Ocorrencia } from './types';
 
 /**
  * Indice de frequencia: numero de acidentes registrados (CAT) somado aos

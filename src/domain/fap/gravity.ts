@@ -1,4 +1,4 @@
-import type { DesfechoGravidade, Ocorrencia } from './types.js';
+import type { DesfechoGravidade, Ocorrencia } from './types';
 
 /**
  * Pesos do indice de gravidade. Morte e invalidez permanente pesam mais que

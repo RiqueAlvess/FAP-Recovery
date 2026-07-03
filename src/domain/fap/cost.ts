@@ -1,4 +1,4 @@
-import type { Ocorrencia } from './types.js';
+import type { Ocorrencia } from './types';
 
 const TIPOS_COMPUTAVEIS_NO_CUSTO = new Set(['B91', 'B92', 'B93', 'B94']);
 

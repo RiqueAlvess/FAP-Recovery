@@ -1,6 +1,6 @@
 import { LIMITE_CARACTERES_CONTESTACAO } from '@/domain/contestation';
 import { buscarDivergenciaPorCodigo } from '@/domain/catalogo-divergencias';
-import type { DadosEmpresaParaMinuta, Divergencia } from './types.js';
+import type { DadosEmpresaParaMinuta, Divergencia } from './types';
 
 function montarCabecalho(dados: DadosEmpresaParaMinuta): string {
   return (

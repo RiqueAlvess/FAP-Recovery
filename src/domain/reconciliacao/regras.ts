@@ -1,8 +1,8 @@
 import { buscarDivergenciaPorCodigo } from '@/domain/catalogo-divergencias';
 import type { ImpactoIndice, SeveridadeDivergencia } from '@/domain/enums';
-import { formatarData } from './formatacao.js';
-import { chaveTrabalhador, encontrarVinculoInterno } from './matching.js';
-import type { Divergencia, RegistroExtratoPlano, RegistroInternoPlano } from './types.js';
+import { formatarData } from './formatacao';
+import { chaveTrabalhador, encontrarVinculoInterno } from './matching';
+import type { Divergencia, RegistroExtratoPlano, RegistroInternoPlano } from './types';
 
 export interface PeriodoBase {
   inicio: Date;

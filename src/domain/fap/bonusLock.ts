@@ -1,4 +1,4 @@
-import type { DesfechoGravidade } from './types.js';
+import type { DesfechoGravidade } from './types';
 
 export interface OpcoesBloqueioBonificacao {
   /** Ex.: nexo afastado por pericia/decisao judicial, isentando o empregador. */

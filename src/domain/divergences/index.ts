@@ -1,3 +1,3 @@
-export * from './types.js';
-export * from './catalog.js';
-export * from './detectors.js';
+export * from './types';
+export * from './catalog';
+export * from './detectors';

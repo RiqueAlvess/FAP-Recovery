@@ -10,8 +10,8 @@ import {
   detectarDiv009,
   detectarDiv010,
   resolverPeriodoBase,
-} from './regras.js';
-import type { Divergencia, OpcoesReconciliacao, RegistroExtratoPlano, RegistroInternoPlano } from './types.js';
+} from './regras';
+import type { Divergencia, OpcoesReconciliacao, RegistroExtratoPlano, RegistroInternoPlano } from './types';
 
 /**
  * Aplica as 10 regras determinísticas do catálogo DIV-001 a DIV-010 sobre os

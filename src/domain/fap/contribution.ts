@@ -1,4 +1,4 @@
-import type { AliquotaRat } from './types.js';
+import type { AliquotaRat } from './types';
 
 /** Contribuição RAT ajustada = Folha x Alíquota RAT x FAP. */
 export function calcularContribuicaoRatAjustada(folha: number, aliquotaRat: AliquotaRat, fap: number): number {

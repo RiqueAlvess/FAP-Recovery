@@ -1,6 +1,9 @@
+// Nome de variável prefixado (em vez do convencional DATABASE_URL) para evitar
+// colisão com uma variável de mesmo nome já definida por alguns ambientes de
+// execução, que sobrescreveria o valor deste .env.
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = env("FAP_DATABASE_URL")
 }
 
 generator client {

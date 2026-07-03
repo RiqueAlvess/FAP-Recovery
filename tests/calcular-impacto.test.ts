@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calcularImpacto } from '../src/domain/reconciliacao/impacto.js';
+import { calcularImpacto, calcularTotaisIndiceAtual } from '../src/domain/reconciliacao/impacto.js';
 import type { ContextoCicloFap, Divergencia, RegistroExtratoPlano } from '../src/domain/reconciliacao/types.js';
 
 function registroExtrato(overrides: Partial<RegistroExtratoPlano> = {}): RegistroExtratoPlano {
@@ -81,5 +81,27 @@ describe('calcularImpacto', () => {
   it('nunca retorna valor negativo', () => {
     const d = divergencia({ impactoIndice: 'GRAVIDADE', registroExtrato: registroExtrato({ tipo: 'VINCULO' }) });
     expect(calcularImpacto(d, contextoBase)).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('calcularTotaisIndiceAtual', () => {
+  it('soma frequência (CATs), gravidade (pesos por espécie) e custo (valorCentavos dos benefícios)', () => {
+    const registros: RegistroExtratoPlano[] = [
+      registroExtrato({ tipo: 'CAT' }),
+      registroExtrato({ tipo: 'CAT' }),
+      registroExtrato({ tipo: 'BENEFICIO', especieBeneficio: 'B92', valorCentavos: 300_000 }),
+      registroExtrato({ tipo: 'BENEFICIO', especieBeneficio: 'B91', valorCentavos: 100_000 }),
+      registroExtrato({ tipo: 'VINCULO' }),
+    ];
+
+    const totais = calcularTotaisIndiceAtual(registros);
+
+    expect(totais.frequencia).toBe(2);
+    expect(totais.custo).toBe(400_000);
+    expect(totais.gravidade).toBeGreaterThan(0);
+  });
+
+  it('retorna zeros para lista vazia', () => {
+    expect(calcularTotaisIndiceAtual([])).toEqual({ frequencia: 0, gravidade: 0, custo: 0 });
   });
 });

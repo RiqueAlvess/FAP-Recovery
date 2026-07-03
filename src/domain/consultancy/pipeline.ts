@@ -1,4 +1,4 @@
-import { EstagioPipeline } from './types.js';
+import { EstagioPipeline } from './types';
 
 const ORDEM_PIPELINE: EstagioPipeline[] = [
   EstagioPipeline.PROSPECT,

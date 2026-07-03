@@ -1,6 +1,6 @@
 import { FAP_MAXIMO, FAP_MINIMO } from '@/domain/fap';
-import { calcularDeltaFapAproximado } from './impacto.js';
-import type { CicloParaSimulacao, ContextoCicloFap, Divergencia, ResultadoSimulacaoFap } from './types.js';
+import { calcularDeltaFapAproximado } from './impacto';
+import type { CicloParaSimulacao, ContextoCicloFap, Divergencia, ResultadoSimulacaoFap } from './types';
 
 const MAX_CICLOS_CREDITO_RETROATIVO = 5;
 

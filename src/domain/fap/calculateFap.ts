@@ -1,10 +1,10 @@
-import type { DadosEstabelecimento, DadosPeerGroup, FapResult, PeriodoBase } from './types.js';
-import { percentileRank } from './percentile.js';
-import { calcularIndiceFrequencia } from './frequency.js';
-import { calcularIndiceGravidade } from './gravity.js';
-import { calcularIndiceCusto } from './cost.js';
-import { calcularTaxaRotatividade, aplicarAjusteRotatividade } from './turnover.js';
-import { bloqueiaBonificacao, aplicarBloqueioBonificacao } from './bonusLock.js';
+import type { DadosEstabelecimento, DadosPeerGroup, FapResult, PeriodoBase } from './types';
+import { percentileRank } from './percentile';
+import { calcularIndiceFrequencia } from './frequency';
+import { calcularIndiceGravidade } from './gravity';
+import { calcularIndiceCusto } from './cost';
+import { calcularTaxaRotatividade, aplicarAjusteRotatividade } from './turnover';
+import { bloqueiaBonificacao, aplicarBloqueioBonificacao } from './bonusLock';
 
 export const FAP_MINIMO = 0.5;
 export const FAP_MAXIMO = 2.0;

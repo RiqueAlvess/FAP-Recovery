@@ -5,7 +5,7 @@ import type {
   RegistroBeneficio,
   RegistroCat,
   VinculoInterno,
-} from './types.js';
+} from './types';
 
 function dataISO(d: Date): string {
   return d.toISOString().slice(0, 10);
