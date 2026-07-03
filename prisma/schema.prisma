@@ -7,5 +7,138 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Nenhum model ainda — schema inicializado vazio, aguardando as primeiras
-// entidades de domínio (Cliente, Estabelecimento, etc.).
+// O conector sqlite do Prisma não suporta enum nativo nem o tipo Json —
+// os campos abaixo marcados "String (enum: ...)" são validados em código
+// contra os literais definidos em src/domain/enums.ts (ou, quando indicado,
+// em src/domain/consultancy/types.ts e src/domain/divergences/types.ts), e
+// os campos "*Json" guardam JSON serializado manualmente.
+
+model Cliente {
+  id              String   @id @default(cuid())
+  razaoSocial     String
+  cnpjRaiz        String
+  contatoNome     String?
+  contatoEmail    String?
+  /// Percentual de êxito contratado (inteiro, ex.: 25 = 25%).
+  percentualExito Int      @default(25)
+  /// String (enum: EstagioPipeline em src/domain/consultancy/types.ts)
+  estagio         String   @default("PROSPECT")
+  createdAt       DateTime @default(now())
+
+  estabelecimentos Estabelecimento[]
+}
+
+model Estabelecimento {
+  id                       String   @id @default(cuid())
+  clienteId                String
+  cliente                  Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  cnpj                     String
+  cnaeSubclasse            String
+  /// Alíquota RAT: 1, 2 ou 3.
+  aliquotaRat              Int
+  folhaMediaMensalCentavos Int
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  ciclosFap CicloFap[]
+}
+
+model CicloFap {
+  id                String   @id @default(cuid())
+  estabelecimentoId String
+  estabelecimento   Estabelecimento @relation(fields: [estabelecimentoId], references: [id], onDelete: Cascade)
+  anoVigencia       Int
+  /// FAP atribuído x10000 (ex.: 1,2345 => 12345).
+  fapAtribuido      Int
+  /// Percentis (0 a 1) dentro da subclasse CNAE.
+  indiceFrequencia  Float
+  indiceGravidade   Float
+  indiceCusto       Float
+  /// String (enum: StatusCicloFap em src/domain/enums.ts)
+  status            String   @default("IMPORTADO")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  registrosExtrato  RegistroExtrato[]
+  registrosInternos RegistroInterno[]
+  divergencias      Divergencia[]
+  contestacoes      Contestacao[]
+
+  @@unique([estabelecimentoId, anoVigencia])
+}
+
+model RegistroExtrato {
+  id              String    @id @default(cuid())
+  cicloFapId      String
+  cicloFap        CicloFap  @relation(fields: [cicloFapId], references: [id], onDelete: Cascade)
+  /// String (enum: TipoRegistro em src/domain/enums.ts)
+  tipo            String
+  nit             String?
+  nomeTrabalhador String?
+  /// String (enum: EspecieBeneficio em src/domain/divergences/types.ts), null quando tipo != BENEFICIO
+  especieBeneficio String?
+  dataInicio      DateTime?
+  dataFim         DateTime?
+  valorCentavos   Int       @default(0)
+  cid             String?
+  /// JSON serializado com a linha bruta original (parser tolerante).
+  dadosBrutosJson String
+  createdAt       DateTime  @default(now())
+
+  divergencias Divergencia[] @relation("DivergenciaRegistroExtrato")
+}
+
+model RegistroInterno {
+  id               String    @id @default(cuid())
+  cicloFapId       String
+  cicloFap         CicloFap  @relation(fields: [cicloFapId], references: [id], onDelete: Cascade)
+  /// String (enum: TipoRegistro em src/domain/enums.ts)
+  tipo             String
+  nit              String?
+  nomeTrabalhador  String?
+  matricula        String?
+  dataAdmissao     DateTime?
+  dataDesligamento DateTime?
+  /// JSON serializado com a linha bruta original (parser tolerante).
+  dadosBrutosJson  String
+  createdAt        DateTime  @default(now())
+
+  divergencias Divergencia[] @relation("DivergenciaRegistroInterno")
+}
+
+model Divergencia {
+  id                      String    @id @default(cuid())
+  cicloFapId              String
+  cicloFap                CicloFap  @relation(fields: [cicloFapId], references: [id], onDelete: Cascade)
+  /// DIV-001 a DIV-010 — ver src/domain/catalogo-divergencias.ts
+  codigo                  String
+  registroExtratoId       String
+  registroExtrato         RegistroExtrato  @relation("DivergenciaRegistroExtrato", fields: [registroExtratoId], references: [id], onDelete: Cascade)
+  registroInternoId       String?
+  registroInterno         RegistroInterno? @relation("DivergenciaRegistroInterno", fields: [registroInternoId], references: [id], onDelete: SetNull)
+  /// String (enum: SeveridadeDivergencia em src/domain/enums.ts)
+  severidade              String
+  /// String (enum: ImpactoIndice em src/domain/enums.ts)
+  impactoIndice           String
+  impactoEstimadoCentavos Int       @default(0)
+  /// String (enum: StatusDivergencia em src/domain/enums.ts)
+  status                  String    @default("DETECTADA")
+  justificativa           String?
+  fundamentacaoLegal      String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@unique([cicloFapId, codigo, registroExtratoId])
+}
+
+model Contestacao {
+  id            String    @id @default(cuid())
+  cicloFapId    String
+  cicloFap      CicloFap  @relation(fields: [cicloFapId], references: [id], onDelete: Cascade)
+  textoMinuta   String
+  caracteres    Int
+  protocoladaEm DateTime?
+  resultado     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
