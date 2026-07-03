@@ -1,0 +1,17 @@
+{
+  "name": "fap-recovery",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Motor de regras de negocio para calculo do FAP, deteccao de divergencias, contestacao e consultoria.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}
