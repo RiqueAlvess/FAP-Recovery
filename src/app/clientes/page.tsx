@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EstagioBadge } from '@/components/badges';
 import { Num } from '@/components/num';
-import { formatPercentInt } from '@/lib/format';
+import { formatCnpjRaiz, formatPercentInt } from '@/lib/format';
 import { NovoClienteDialog } from '@/components/clientes/novo-cliente-dialog';
 
 export const dynamic = 'force-dynamic';
@@ -38,7 +38,7 @@ export default async function ClientesPage() {
               {clientes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    Nenhum cliente cadastrado.
+                    Nenhum cliente cadastrado ainda. Use o botão &quot;Novo cliente&quot; acima para começar.
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -50,7 +50,7 @@ export default async function ClientesPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Num>{cliente.cnpjRaiz}</Num>
+                    <Num>{formatCnpjRaiz(cliente.cnpjRaiz)}</Num>
                   </TableCell>
                   <TableCell>
                     <EstagioBadge estagio={cliente.estagio} />

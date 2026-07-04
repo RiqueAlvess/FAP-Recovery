@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { janelaContestacao } from '@/domain/contestation';
+import { calcularHonorarioProjetadoCentavos } from '@/domain/consultancy';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EstagioBadge } from '@/components/badges';
@@ -46,7 +47,7 @@ export default async function DashboardPage() {
     const divergencias = cliente.estabelecimentos.flatMap((e) => e.ciclosFap.flatMap((c) => c.divergencias));
     const naoDescartadas = divergencias.filter((d) => d.status !== 'DESCARTADA');
     const economiaCentavos = naoDescartadas.reduce((soma, d) => soma + d.impactoEstimadoCentavos, 0);
-    const honorarioCentavos = Math.round(economiaCentavos * (cliente.percentualExito / 100));
+    const honorarioCentavos = calcularHonorarioProjetadoCentavos(economiaCentavos, cliente.percentualExito);
     return { cliente, economiaCentavos, honorarioCentavos };
   });
 
@@ -146,7 +147,11 @@ export default async function DashboardPage() {
                 {resumoClientes.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      Nenhum cliente cadastrado.
+                      Nenhum cliente cadastrado ainda.{' '}
+                      <Link href="/clientes" className="text-primary hover:underline">
+                        Cadastre o primeiro cliente
+                      </Link>
+                      .
                     </TableCell>
                   </TableRow>
                 ) : null}

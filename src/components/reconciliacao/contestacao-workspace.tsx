@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   marcarProtocoladaAction,
@@ -30,6 +31,7 @@ interface Props {
 
 const LIMITE_VERDE = 4000;
 const LIMITE_AMARELO = 4800;
+const PLACEHOLDER_SEM_DIVERGENCIAS = '(nenhuma divergência confirmada informada)';
 
 export function ContestacaoWorkspace({
   cicloId,
@@ -47,6 +49,7 @@ export function ContestacaoWorkspace({
   const [copiado, setCopiado] = useState(false);
 
   const protocolada = protocoladaEm !== null;
+  const semDivergenciasConfirmadas = texto.includes(PLACEHOLDER_SEM_DIVERGENCIAS);
   const tamanho = texto.length;
   const excedeLimite = tamanho > LIMITE_CARACTERES_CONTESTACAO;
 
@@ -108,6 +111,20 @@ export function ContestacaoWorkspace({
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
+        {semDivergenciasConfirmadas ? (
+          <Card className="border-warning/40 bg-warning/5">
+            <CardContent className="space-y-1 py-4 text-sm">
+              <p className="font-medium text-warning">Esta minuta não tem nenhuma divergência confirmada.</p>
+              <p className="text-muted-foreground">
+                Volte para a{' '}
+                <Link href={`/ciclos/${cicloId}/reconciliacao`} className="text-primary hover:underline">
+                  reconciliação
+                </Link>{' '}
+                e confirme ao menos uma divergência antes de protocolar.
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base">Minuta de contestação</CardTitle>

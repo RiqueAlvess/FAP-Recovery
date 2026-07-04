@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstagioBadge, ROTULOS_ESTAGIO, StatusCicloBadge } from '@/components/badges';
 import { Num } from '@/components/num';
 import { ConfirmSubmitButton } from '@/components/confirm-submit-button';
-import { formatBRLFromCentavos, formatFapFromInt } from '@/lib/format';
+import { formatBRLFromCentavos, formatCNPJ, formatFapFromInt } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -176,14 +176,14 @@ export default async function ClienteDetalhePage({ params }: Props) {
                   {cliente.estabelecimentos.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        Nenhum estabelecimento cadastrado.
+                        Nenhum estabelecimento cadastrado ainda. Use o formulário acima para adicionar o primeiro CNPJ.
                       </TableCell>
                     </TableRow>
                   ) : null}
                   {cliente.estabelecimentos.map((estabelecimento) => (
                     <TableRow key={estabelecimento.id}>
                       <TableCell>
-                        <Num>{estabelecimento.cnpj}</Num>
+                        <Num>{formatCNPJ(estabelecimento.cnpj)}</Num>
                       </TableCell>
                       <TableCell>
                         <Num>{estabelecimento.cnaeSubclasse}</Num>
@@ -236,7 +236,7 @@ export default async function ClienteDetalhePage({ params }: Props) {
                     <NativeSelect id="estabelecimentoId" name="estabelecimentoId" defaultValue={cliente.estabelecimentos[0]?.id}>
                       {cliente.estabelecimentos.map((estabelecimento) => (
                         <option key={estabelecimento.id} value={estabelecimento.id}>
-                          {estabelecimento.cnpj}
+                          {formatCNPJ(estabelecimento.cnpj)}
                         </option>
                       ))}
                     </NativeSelect>
@@ -287,14 +287,14 @@ export default async function ClienteDetalhePage({ params }: Props) {
                   {ciclos.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        Nenhum ciclo FAP cadastrado.
+                        Nenhum ciclo FAP cadastrado ainda. Use o formulário acima para criar o primeiro ciclo.
                       </TableCell>
                     </TableRow>
                   ) : null}
                   {ciclos.map(({ ciclo, estabelecimento }) => (
                     <TableRow key={ciclo.id}>
                       <TableCell>
-                        <Num>{estabelecimento.cnpj}</Num>
+                        <Num>{formatCNPJ(estabelecimento.cnpj)}</Num>
                       </TableCell>
                       <TableCell>
                         <Num>{ciclo.anoVigencia}</Num>

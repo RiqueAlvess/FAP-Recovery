@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { paraCicloParaSimulacao, paraDivergenciaDominio, paraRegistroExtratoPlano } from '@/lib/mappers';
 import { buscarDivergenciaPorCodigo } from '@/domain/catalogo-divergencias';
 import { calcularSimulacaoCompleta, type AnoAnteriorBase } from '@/lib/simulacao-ui';
+import { calcularHonorarioProjetadoCentavos } from '@/domain/consultancy';
+import { formatCNPJ } from '@/lib/format';
 import { PropostaDocument } from '@/lib/pdf/proposta-document';
 
 const ANOS_RETROATIVOS = 5;
@@ -58,9 +60,9 @@ export async function POST(request: NextRequest, { params }: Params) {
     selicPorAno,
   });
 
-  const honorarioProjetadoCentavos = Math.round(
-    (resultado.economiaAnualCentavos + resultado.creditoRetroativoCentavos) *
-      (ciclo.estabelecimento.cliente.percentualExito / 100)
+  const honorarioProjetadoCentavos = calcularHonorarioProjetadoCentavos(
+    resultado.economiaAnualCentavos + resultado.creditoRetroativoCentavos,
+    ciclo.estabelecimento.cliente.percentualExito
   );
 
   const divergenciasParaPdf = confirmadasDb
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   const buffer = await renderToBuffer(
     <PropostaDocument
       razaoSocial={ciclo.estabelecimento.cliente.razaoSocial}
-      cnpj={ciclo.estabelecimento.cnpj}
+      cnpj={formatCNPJ(ciclo.estabelecimento.cnpj)}
       cnaeSubclasse={ciclo.estabelecimento.cnaeSubclasse}
       anoVigencia={ciclo.anoVigencia}
       fapAtual={cicloBase.fapAtual}

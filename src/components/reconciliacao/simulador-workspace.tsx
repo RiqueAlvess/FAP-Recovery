@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SeveridadeBadge } from '@/components/badges';
@@ -8,6 +9,7 @@ import { Num } from '@/components/num';
 import { formatBRLFromCentavos, formatFapFromDecimal } from '@/lib/format';
 import { calcularSimulacaoCompleta, type AnoAnteriorBase } from '@/lib/simulacao-ui';
 import type { CicloParaSimulacao, Divergencia as DivergenciaDominio } from '@/domain/reconciliacao';
+import { calcularHonorarioProjetadoCentavos } from '@/domain/consultancy';
 
 interface ItemSimulacao {
   id: string;
@@ -46,8 +48,9 @@ export function SimuladorWorkspace({ cicloId, cicloBase, itens, anosAnteriores, 
     });
   }, [itens, incluidos, cicloBase, anosAnteriores, selicPorAno]);
 
-  const honorarioProjetadoCentavos = Math.round(
-    (resultado.economiaAnualCentavos + resultado.creditoRetroativoCentavos) * (percentualExito / 100)
+  const honorarioProjetadoCentavos = calcularHonorarioProjetadoCentavos(
+    resultado.economiaAnualCentavos + resultado.creditoRetroativoCentavos,
+    percentualExito
   );
 
   async function exportarPdf() {
@@ -79,7 +82,13 @@ export function SimuladorWorkspace({ cicloId, cicloBase, itens, anosAnteriores, 
         </CardHeader>
         <CardContent className="space-y-2">
           {itens.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma divergência confirmada neste ciclo ainda.</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhuma divergência confirmada neste ciclo ainda. Volte para a{' '}
+              <Link href={`/ciclos/${cicloId}/reconciliacao`} className="text-primary hover:underline">
+                reconciliação
+              </Link>{' '}
+              e confirme ao menos uma divergência para simular o impacto.
+            </p>
           ) : null}
           {itens.map((item) => (
             <label

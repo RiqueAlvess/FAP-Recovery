@@ -16,6 +16,7 @@ import type {
   RegistroInternoPlano,
 } from '@/domain/reconciliacao';
 import type { AliquotaRat } from '@/domain/fap';
+import { formatCNPJ } from '@/lib/format';
 import type { ImpactoIndice, SeveridadeDivergencia, StatusDivergencia } from '@/domain/enums';
 
 export function paraRegistroExtratoPlano(registro: RegistroExtratoDb): RegistroExtratoPlano {
@@ -128,7 +129,7 @@ export function paraDadosEmpresaParaMinuta(
 ): DadosEmpresaParaMinuta {
   return {
     razaoSocial: cliente.razaoSocial,
-    cnpj: estabelecimento.cnpj,
+    cnpj: formatCNPJ(estabelecimento.cnpj),
     cnaeSubclasse: estabelecimento.cnaeSubclasse,
     anoVigencia,
   };

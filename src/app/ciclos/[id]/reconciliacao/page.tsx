@@ -5,7 +5,7 @@ import { garantirDivergenciasDoCiclo } from '@/lib/reconciliacao-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusCicloBadge } from '@/components/badges';
 import { Num } from '@/components/num';
-import { formatBRLFromCentavos, formatFapFromInt } from '@/lib/format';
+import { formatBRLFromCentavos, formatCNPJ, formatFapFromInt } from '@/lib/format';
 import { ReconciliacaoWorkspace } from '@/components/reconciliacao/reconciliacao-workspace';
 
 export const dynamic = 'force-dynamic';
@@ -30,8 +30,11 @@ export default async function ReconciliacaoPage({ params }: Props) {
         include: { registroExtrato: true, registroInterno: true },
         orderBy: [{ impactoEstimadoCentavos: 'desc' }],
       },
+      _count: { select: { registrosExtrato: true, registrosInternos: true } },
     },
   });
+
+  const semRegistros = ciclo._count.registrosExtrato === 0 && ciclo._count.registrosInternos === 0;
 
   const impactoTotal = ciclo.divergencias
     .filter((d) => d.status !== 'DESCARTADA')
@@ -53,11 +56,30 @@ export default async function ReconciliacaoPage({ params }: Props) {
           ← {ciclo.estabelecimento.cliente.razaoSocial}
         </Link>
         <h1 className="text-lg font-semibold tracking-tight">
-          Reconciliação — ciclo {ciclo.anoVigencia} · {ciclo.estabelecimento.cnpj}
+          Reconciliação — ciclo {ciclo.anoVigencia} · {formatCNPJ(ciclo.estabelecimento.cnpj)}
         </h1>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      {semRegistros ? (
+        <Card>
+          <CardContent className="space-y-2 py-8 text-center">
+            <p className="font-medium">Este ciclo ainda não tem nenhum registro de extrato ou de dados internos.</p>
+            <p className="text-sm text-muted-foreground">
+              Sem registros importados não há o que reconciliar. A importação de arquivos CSV/XLSX está no roadmap da
+              próxima fase do produto (ver backlog no CLAUDE.md) — por ora, os registros são carregados diretamente no
+              banco de dados.
+            </p>
+            <Link
+              href={`/clientes/${ciclo.estabelecimento.clienteId}`}
+              className="inline-block text-sm text-primary hover:underline"
+            >
+              Voltar ao cadastro do cliente
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">FAP atribuído</CardTitle>
@@ -98,9 +120,11 @@ export default async function ReconciliacaoPage({ params }: Props) {
             <Num className="text-xl font-semibold text-success">{formatBRLFromCentavos(impactoTotal)}</Num>
           </CardContent>
         </Card>
-      </div>
+          </div>
 
-      <ReconciliacaoWorkspace cicloId={ciclo.id} divergencias={ciclo.divergencias} />
+          <ReconciliacaoWorkspace cicloId={ciclo.id} divergencias={ciclo.divergencias} />
+        </>
+      )}
     </div>
   );
 }

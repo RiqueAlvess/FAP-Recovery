@@ -24,6 +24,12 @@ export function formatCNPJ(cnpj: string): string {
   return `${digitos.slice(0, 2)}.${digitos.slice(2, 5)}.${digitos.slice(5, 8)}/${digitos.slice(8, 12)}-${digitos.slice(12, 14)}`;
 }
 
+/** CNPJ raiz (8 dígitos, sem filial/DV): sempre retorna 00.000.000. */
+export function formatCnpjRaiz(cnpjRaiz: string): string {
+  const digitos = cnpjRaiz.replace(/\D/g, '').padStart(8, '0').slice(-8);
+  return `${digitos.slice(0, 2)}.${digitos.slice(2, 5)}.${digitos.slice(5, 8)}`;
+}
+
 export function formatPercentInt(percentual: number): string {
   return `${percentual}%`;
 }

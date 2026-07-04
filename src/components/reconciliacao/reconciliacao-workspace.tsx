@@ -334,6 +334,13 @@ export function ReconciliacaoWorkspace({
             <Num className="font-medium text-success">{formatBRLFromCentavos(impactoConfirmado)}</Num>
           </p>
           <div className="flex gap-2">
+            {confirmadas.length > 0 ? (
+              <a href={`/ciclos/${cicloId}/dossie`} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm">
+                  Exportar dossiê
+                </Button>
+              </a>
+            ) : null}
             <Button variant="outline" size="sm" disabled={pendente} onClick={simular}>
               Simular FAP
             </Button>
