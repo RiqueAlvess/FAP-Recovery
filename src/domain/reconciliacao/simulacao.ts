@@ -1,11 +1,22 @@
 import { FAP_MAXIMO, FAP_MINIMO } from '@/domain/fap';
 import { calcularDeltaFapAproximado } from './impacto';
-import type { CicloParaSimulacao, ContextoCicloFap, Divergencia, ResultadoSimulacaoFap } from './types';
+import type { CicloParaSimulacao, ContextoCicloFap, Divergencia, DetalheCicloAnterior, ResultadoSimulacaoFap } from './types';
 
 const MAX_CICLOS_CREDITO_RETROATIVO = 5;
 
 function clamp(valor: number, min: number, max: number): number {
   return Math.min(Math.max(valor, min), max);
+}
+
+/**
+ * Estima o FAP que um ano anterior teria se as mesmas divergências já
+ * corrigidas se aplicassem a ele: aplica o mesmo ΔFAP absoluto apurado no
+ * ciclo atual sobre o FAP daquele ano, dentro do piso/teto regulatório.
+ * Simplificação necessária: sem os registros originais daquele ciclo, não há
+ * como recalcular o ΔFAP específico do ano anterior.
+ */
+export function estimarFapAnterior(fapAtualDoAno: number, deltaFapCicloAtual: number): number {
+  return clamp(fapAtualDoAno - deltaFapCicloAtual, FAP_MINIMO, FAP_MAXIMO);
 }
 
 function paraContexto(ciclo: CicloParaSimulacao): ContextoCicloFap {
@@ -51,16 +62,26 @@ export function simularFap(cicloAtual: CicloParaSimulacao, divergenciasConfirmad
   );
 
   const ciclosAnteriores = (cicloAtual.ciclosAnteriores ?? []).slice(0, MAX_CICLOS_CREDITO_RETROATIVO);
-  const creditoRetroativoCentavos = ciclosAnteriores.reduce((soma, ciclo) => {
+
+  const detalheCiclosAnteriores: DetalheCicloAnterior[] = ciclosAnteriores.map((ciclo) => {
     const economiaCiclo = ciclo.folhaAnualCentavos * (ciclo.aliquotaRat / 100) * (ciclo.fapAtual - ciclo.fapSimulado);
-    const economiaCorrigida = Math.max(economiaCiclo, 0) * (1 + ciclo.taxaSelicAcumulada);
-    return soma + Math.round(economiaCorrigida);
-  }, 0);
+    const economiaCorrigida = Math.round(Math.max(economiaCiclo, 0) * (1 + ciclo.taxaSelicAcumulada));
+    return {
+      anoVigencia: ciclo.anoVigencia,
+      fapAtual: ciclo.fapAtual,
+      fapSimulado: ciclo.fapSimulado,
+      taxaSelicAcumulada: ciclo.taxaSelicAcumulada,
+      valorCorrigidoCentavos: economiaCorrigida,
+    };
+  });
+
+  const creditoRetroativoCentavos = detalheCiclosAnteriores.reduce((soma, d) => soma + d.valorCorrigidoCentavos, 0);
 
   return {
     fapSimulado: Math.round(fapSimulado * 10_000) / 10_000,
     economiaAnualCentavos,
     creditoRetroativoCentavos,
     ciclosConsiderados: ciclosAnteriores.length,
+    detalheCiclosAnteriores,
   };
 }

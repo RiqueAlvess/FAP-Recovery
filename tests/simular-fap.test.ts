@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { FAP_MINIMO } from '../src/domain/fap/index.js';
-import { simularFap } from '../src/domain/reconciliacao/simulacao.js';
+import { FAP_MAXIMO, FAP_MINIMO } from '../src/domain/fap/index.js';
+import { estimarFapAnterior, simularFap } from '../src/domain/reconciliacao/simulacao.js';
 import type { CicloParaSimulacao, Divergencia, RegistroExtratoPlano } from '../src/domain/reconciliacao/types.js';
 
 function registroExtrato(overrides: Partial<RegistroExtratoPlano> = {}): RegistroExtratoPlano {
@@ -114,5 +114,33 @@ describe('simularFap', () => {
     }));
     const resultado = simularFap({ ...cicloBase, ciclosAnteriores: seisCiclos }, []);
     expect(resultado.ciclosConsiderados).toBe(5);
+  });
+
+  it('detalheCiclosAnteriores traz uma linha por ciclo anterior, na mesma ordem, com o valor já corrigido', () => {
+    const cicloComAnteriores: CicloParaSimulacao = {
+      ...cicloBase,
+      ciclosAnteriores: [
+        { anoVigencia: 2024, folhaAnualCentavos: 900_000_000, aliquotaRat: 3, fapAtual: 1.2, fapSimulado: 1.0, taxaSelicAcumulada: 0.1 },
+        { anoVigencia: 2023, folhaAnualCentavos: 900_000_000, aliquotaRat: 3, fapAtual: 1.3, fapSimulado: 1.1, taxaSelicAcumulada: 0.2 },
+      ],
+    };
+    const resultado = simularFap(cicloComAnteriores, []);
+
+    expect(resultado.detalheCiclosAnteriores).toHaveLength(2);
+    expect(resultado.detalheCiclosAnteriores[0]?.anoVigencia).toBe(2024);
+    expect(resultado.detalheCiclosAnteriores[1]?.anoVigencia).toBe(2023);
+    const somaDetalhe = resultado.detalheCiclosAnteriores.reduce((s, d) => s + d.valorCorrigidoCentavos, 0);
+    expect(somaDetalhe).toBe(resultado.creditoRetroativoCentavos);
+  });
+});
+
+describe('estimarFapAnterior', () => {
+  it('aplica o mesmo delta absoluto ao FAP do ano anterior', () => {
+    expect(estimarFapAnterior(1.3, 0.05)).toBeCloseTo(1.25);
+  });
+
+  it('nunca sai do intervalo [FAP_MINIMO, FAP_MAXIMO]', () => {
+    expect(estimarFapAnterior(0.52, 0.5)).toBeGreaterThanOrEqual(FAP_MINIMO);
+    expect(estimarFapAnterior(1.99, -5)).toBeLessThanOrEqual(FAP_MAXIMO);
   });
 });

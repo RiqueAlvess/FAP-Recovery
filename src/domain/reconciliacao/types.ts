@@ -127,12 +127,23 @@ export interface CicloParaSimulacao {
   ciclosAnteriores?: CicloAnteriorParaCredito[];
 }
 
+export interface DetalheCicloAnterior {
+  anoVigencia: number;
+  fapAtual: number;
+  fapSimulado: number;
+  taxaSelicAcumulada: number;
+  /** economiaAnual daquele ciclo já corrigida pela SELIC acumulada informada. */
+  valorCorrigidoCentavos: number;
+}
+
 export interface ResultadoSimulacaoFap {
   fapSimulado: number;
   economiaAnualCentavos: number;
   creditoRetroativoCentavos: number;
   /** Quantos ciclos anteriores efetivamente entraram no cálculo do crédito retroativo (máx. 5). */
   ciclosConsiderados: number;
+  /** Detalhamento por ano-base do crédito retroativo — mesma ordem de `CicloParaSimulacao.ciclosAnteriores`. */
+  detalheCiclosAnteriores: DetalheCicloAnterior[];
 }
 
 export interface DadosEmpresaParaMinuta {

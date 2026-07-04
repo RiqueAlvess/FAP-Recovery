@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import {
   atualizarStatusDivergencia,
-  executarGerarContestacaoDoCiclo,
   executarSimulacaoDoCiclo,
+  gerarOuAtualizarContestacaoDoCiclo,
 } from '@/lib/reconciliacao-service';
 import type { StatusDivergencia } from '@/domain/enums';
 
@@ -24,8 +24,9 @@ export async function simularFapAction(cicloId: string) {
 }
 
 export async function gerarContestacaoAction(cicloId: string) {
-  const contestacao = await executarGerarContestacaoDoCiclo(cicloId);
+  const resultado = await gerarOuAtualizarContestacaoDoCiclo(cicloId);
   revalidatePath(`/ciclos/${cicloId}/reconciliacao`);
+  revalidatePath(`/ciclos/${cicloId}/contestacao`);
   revalidatePath('/dashboard');
-  return contestacao;
+  return resultado;
 }

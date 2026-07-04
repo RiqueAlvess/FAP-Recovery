@@ -1,3 +1,4 @@
+import type { Divergencia as DivergenciaDb, RegistroExtrato as RegistroExtratoDb } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import {
   paraCicloParaSimulacao,
@@ -8,6 +9,8 @@ import {
   paraRegistroInternoPlano,
 } from '@/lib/mappers';
 import { calcularImpacto, gerarMinutaContestacao, reconciliar, simularFap } from '@/domain/reconciliacao';
+import { LIMITE_CARACTERES_CONTESTACAO } from '@/domain/contestation';
+import { buscarDivergenciaPorCodigo } from '@/domain/catalogo-divergencias';
 import type { StatusDivergencia } from '@/domain/enums';
 
 async function carregarContextoCiclo(cicloId: string) {
@@ -110,7 +113,46 @@ export async function executarSimulacaoDoCiclo(cicloId: string) {
   return simularFap(cicloParaSimulacao, confirmadasDb.map(paraDivergenciaDominio));
 }
 
-export async function executarGerarContestacaoDoCiclo(cicloId: string) {
+export interface DivergenciaExcluidaDaMinuta {
+  codigo: string;
+  titulo: string;
+  referencia: string;
+}
+
+/**
+ * A minuta gerada por `gerarMinutaContestacao` traz cada divergência incluída
+ * como uma linha `[CODIGO - titulo] Registro de <referencia>: ...` — usamos
+ * essa mesma chave para descobrir, sem alterar a assinatura da função de
+ * domínio (que retorna só a string final), quais divergências confirmadas
+ * ficaram de fora por causa do limite de caracteres.
+ */
+export function identificarDivergenciasExcluidasDaMinuta(
+  texto: string,
+  confirmadas: (DivergenciaDb & { registroExtrato: RegistroExtratoDb })[]
+): DivergenciaExcluidaDaMinuta[] {
+  return confirmadas
+    .map((d) => {
+      const titulo = buscarDivergenciaPorCodigo(d.codigo)?.titulo ?? d.codigo;
+      const referencia = d.registroExtrato.nomeTrabalhador ?? d.registroExtrato.nit ?? d.registroExtrato.id;
+      const chave = `[${d.codigo} - ${titulo}] Registro de ${referencia}:`;
+      return { codigo: d.codigo, titulo, referencia, incluida: texto.includes(chave) };
+    })
+    .filter((d) => !d.incluida)
+    .map(({ codigo, titulo, referencia }) => ({ codigo, titulo, referencia }));
+}
+
+export interface ResultadoGeracaoContestacao {
+  contestacao: Awaited<ReturnType<typeof prisma.contestacao.create>>;
+  divergenciasExcluidas: DivergenciaExcluidaDaMinuta[];
+}
+
+/**
+ * Gera (ou regenera) a minuta de contestação do ciclo. Se já existir uma
+ * Contestacao ainda não protocolada, ela é atualizada em vez de criar uma
+ * nova linha — uma vez protocolada, a Contestacao vira registro histórico e
+ * uma nova geração cria uma linha nova (ex.: ano seguinte).
+ */
+export async function gerarOuAtualizarContestacaoDoCiclo(cicloId: string): Promise<ResultadoGeracaoContestacao> {
   const ciclo = await carregarContextoCiclo(cicloId);
 
   const confirmadasDb = await prisma.divergencia.findMany({
@@ -121,7 +163,42 @@ export async function executarGerarContestacaoDoCiclo(cicloId: string) {
   const dadosEmpresa = paraDadosEmpresaParaMinuta(ciclo.estabelecimento.cliente, ciclo.estabelecimento, ciclo.anoVigencia);
   const texto = gerarMinutaContestacao(confirmadasDb.map(paraDivergenciaDominio), dadosEmpresa);
 
-  return prisma.contestacao.create({
-    data: { cicloFapId: cicloId, textoMinuta: texto, caracteres: texto.length },
+  const existente = await prisma.contestacao.findFirst({
+    where: { cicloFapId: cicloId, protocoladaEm: null },
+    orderBy: { createdAt: 'desc' },
   });
+
+  const contestacao = existente
+    ? await prisma.contestacao.update({
+        where: { id: existente.id },
+        data: { textoMinuta: texto, caracteres: texto.length },
+      })
+    : await prisma.contestacao.create({
+        data: { cicloFapId: cicloId, textoMinuta: texto, caracteres: texto.length },
+      });
+
+  return { contestacao, divergenciasExcluidas: identificarDivergenciasExcluidasDaMinuta(texto, confirmadasDb) };
+}
+
+export async function salvarMinutaEditada(contestacaoId: string, texto: string): Promise<void> {
+  if (texto.length > LIMITE_CARACTERES_CONTESTACAO) {
+    throw new Error(`A minuta excede o limite de ${LIMITE_CARACTERES_CONTESTACAO} caracteres.`);
+  }
+  await prisma.contestacao.update({
+    where: { id: contestacaoId },
+    data: { textoMinuta: texto, caracteres: texto.length },
+  });
+}
+
+export async function marcarContestacaoProtocolada(contestacaoId: string, cicloId: string, texto: string): Promise<void> {
+  if (texto.length > LIMITE_CARACTERES_CONTESTACAO) {
+    throw new Error(`A minuta excede o limite de ${LIMITE_CARACTERES_CONTESTACAO} caracteres.`);
+  }
+
+  await prisma.contestacao.update({
+    where: { id: contestacaoId },
+    data: { textoMinuta: texto, caracteres: texto.length, protocoladaEm: new Date() },
+  });
+
+  await prisma.cicloFap.update({ where: { id: cicloId }, data: { status: 'CONTESTADO' } });
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useMemo, useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Divergencia, RegistroExtrato, RegistroInterno } from '@prisma/client';
 import { alterarStatusDivergenciaAction, gerarContestacaoAction, simularFapAction } from '@/app/ciclos/[id]/reconciliacao/actions';
@@ -144,8 +145,8 @@ export function ReconciliacaoWorkspace({
 
   function gerarContestacao() {
     startTransition(async () => {
-      const contestacao = await gerarContestacaoAction(cicloId);
-      setTextoContestacao(contestacao.textoMinuta);
+      const resultado = await gerarContestacaoAction(cicloId);
+      setTextoContestacao(resultado.contestacao.textoMinuta);
       setContestacaoAberta(true);
     });
   }
@@ -404,7 +405,10 @@ export function ReconciliacaoWorkspace({
             </DialogDescription>
           </DialogHeader>
           <Textarea readOnly value={textoContestacao} rows={16} className="font-mono text-xs" />
-          <DialogFooter>
+          <DialogFooter className="justify-between sm:justify-between">
+            <Link href={`/ciclos/${cicloId}/contestacao`} className="text-sm text-primary hover:underline">
+              Abrir tela de contestação para editar e protocolar →
+            </Link>
             <Button variant="outline" onClick={() => navigator.clipboard.writeText(textoContestacao)}>
               Copiar texto
             </Button>
