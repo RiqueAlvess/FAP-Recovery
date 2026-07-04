@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    container_name: fap-recovery
+    ports:
+      - "3000:3000"
+    environment:
+      FAP_DATABASE_URL: "file:/data/dev.db"
+      NODE_ENV: production
+    volumes:
+      - fap_db_data:/data
+    restart: unless-stopped
+
+volumes:
+  fap_db_data:
